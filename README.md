@@ -1,10 +1,9 @@
 🌍 프로젝트 개요
 목표: Jira/Notion처럼 팀 협업과 프로젝트 관리에 필요한 기능을 제공하는 플랫폼 구축
 
-기술 스택:
-Backend: Spring Boot, JWT, Spring Security, MariaDB
-Frontend: React, Axios
-개발 도구: IntelliJ (백엔드), VSCode (프론트엔드), GitHub 연동
+- 기술 스택: Backend: Spring Boot, JWT, Spring Security, MariaDB
+- Frontend: React, Axios
+- 개발 도구: IntelliJ (백엔드), VSCode (프론트엔드), GitHub 연동
 
 ✅ 진행된 작업 정리
 1. 백엔드 프로젝트 세팅
@@ -30,6 +29,7 @@ DB 초기화 및 테이블 재생성 설정
 4. 팀 기능 구현 시작
 팀 관련 Entity/DTO/Service/Controller 구조 설계
 로그인 후 이동할 /teams 페이지 계획 수립
+
 
 📌 다음 단계 진행 예정
 
