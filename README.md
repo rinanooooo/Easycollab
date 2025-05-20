@@ -15,18 +15,27 @@ EasyCollab - Fullstack 프로젝트
 📂 폴더 구조 (Frontend)
 ------------------------
 src/
+
 ├── api/               # Axios 인스턴스 및 interceptor
+
 ├── components/        # LoginForm, TeamForm, TeamList
+
 ├── pages/             # LoginPage, TeamPage
+
 ├── styles/            # CSS
+
 └── App.tsx            # 전체 라우팅 구성
 
 📂 주요 구조 (Backend)
 ------------------------
 com.irnproj.easycollab
+
 ├── module.user        # 사용자 엔티티, 컨트롤러, 서비스
+
 ├── module.team        # 팀 생성/조회 관련 로직
+
 ├── security           # JWT 필터, Security 설정, UserPrincipal
+
 └── EasycollabApplication.java
 
 🚀 시작하기
