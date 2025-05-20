@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class SignupResponseDto {
+public class SignupResponseDto { // 회원가입 응답
   private String username;
   private String message;
 }

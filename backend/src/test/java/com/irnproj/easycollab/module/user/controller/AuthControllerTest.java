@@ -30,7 +30,7 @@ class AuthControllerTest {
   @Test
   void 회원가입_로그인_인증_전체흐름_테스트() throws Exception {
     // 회원가입
-    SignupRequestDto signup = new SignupRequestDto("testuser", "test@example.com", "password");
+    SignupRequestDto signup = new SignupRequestDto("testuser", "tester", "test@example.com", "password");
     ResponseEntity<String> signupRes = rest.postForEntity(
         baseUrl() + "/signup",
         signup,

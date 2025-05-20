@@ -19,12 +19,14 @@ public class AuthController {
   private final JwtUtil jwtUtil;
   private final UserService userService;
 
+  // 회원 가입
   @PostMapping("/signup")
   public ResponseEntity<SignupResponseDto> signup(@RequestBody SignupRequestDto request) {
     User saved = userService.register(request);
     return ResponseEntity.ok(new SignupResponseDto(saved.getUsername(), "회원가입이 완료되었습니다."));
   }
 
+  // 로그인
   @PostMapping("/login")
   public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto request) {
     Authentication authentication = authenticationManager.authenticate(

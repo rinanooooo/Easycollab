@@ -41,10 +41,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (jwtUtil.validateToken(token)) {
           UsernamePasswordAuthenticationToken authentication =
-              new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+              new UsernamePasswordAuthenticationToken(
+                  userDetails, // 인증된 사용자 객체
+                  null,        // 자격 증명 (보통 비워둠)
+                  userDetails.getAuthorities() // 사용자 권한 정보
+              );
 
-          authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-          SecurityContextHolder.getContext().setAuthentication(authentication);
+          authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request)); // 요청 정보를 인증 객체에 추가
+          SecurityContextHolder.getContext().setAuthentication(authentication); // 인증 정보 저장
         }
       }
     }

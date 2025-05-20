@@ -18,7 +18,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 public class SecurityConfig {
-
   private final JwtUtil jwtUtil;
   private final UserDetailsService userDetailsService;
 
@@ -56,17 +55,19 @@ public class SecurityConfig {
         .csrf(csrf -> csrf.disable())
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/auth/**").permitAll()
-            .anyRequest().authenticated()
+            .requestMatchers("/api/auth/**").permitAll()  // 회원가입, 로그인 경로는 인증 없이 접근 가능
+            .requestMatchers("/api/users/me").authenticated() // 로그인한 사용자만 접근 가능하도록 명시
+            .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll() // Swagger API 문서 열람 허용 (개발용)
+            .anyRequest().authenticated()                // 나머지 모든 요청은 인증 필요
         )
         .exceptionHandling(ex -> ex
             .authenticationEntryPoint((request, response, authException) ->
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED))
         )
+        // JWT 필터가 로그인 필터보다 앞에 오도록 설정
         .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
-    // 최신 방식으로 CORS 설정 추가
-    http.cors(Customizer.withDefaults()); // ← import static org.springframework.security.config.Customizer.withDefaults;
+    http.cors(Customizer.withDefaults());
 
     return http.build();
   }
