@@ -1,5 +1,6 @@
 package com.irnproj.easycollab.module.comCode.entity;
 
+import com.irnproj.easycollab.common.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
     uniqueConstraints = {@UniqueConstraint(columnNames = {"code_type", "code"})})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ComCode {
+public class ComCode extends BaseTimeEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

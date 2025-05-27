@@ -1,5 +1,6 @@
 package com.irnproj.easycollab.module.user.entity;
 
+import com.irnproj.easycollab.common.entity.BaseTimeEntity;
 import com.irnproj.easycollab.module.team.entity.TeamMember;
 import jakarta.persistence.*;
 import lombok.*;
@@ -13,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@EntityListeners(AuditingEntityListener.class)
 @Entity
 @Getter
 @Setter
@@ -21,7 +21,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "users")
-public class User {
+public class User extends BaseTimeEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
