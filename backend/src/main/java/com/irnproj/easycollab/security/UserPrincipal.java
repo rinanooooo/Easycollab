@@ -3,6 +3,7 @@ package com.irnproj.easycollab.security;
 import com.irnproj.easycollab.module.user.entity.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
@@ -17,9 +18,13 @@ public class UserPrincipal implements UserDetails {
     this.user = user;
   }
 
+  public Long getId() {
+    return user.getId();
+  }
+
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    return Collections.singleton(() -> user.getRole());
+    return Collections.singleton(new SimpleGrantedAuthority(user.getRole().getName()));
   }
 
   @Override
@@ -29,7 +34,7 @@ public class UserPrincipal implements UserDetails {
 
   @Override
   public String getUsername() {
-    return user.getUsername();
+    return user.getLoginId();
   }
 
   @Override public boolean isAccountNonExpired() { return true; }

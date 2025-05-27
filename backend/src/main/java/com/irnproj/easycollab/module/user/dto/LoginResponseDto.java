@@ -6,6 +6,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class LoginResponseDto { // 로그인 응답
-  private String username;
   private String token;
+//  private String loginId;
+//  private String nickName;
+//  private String role;
 }

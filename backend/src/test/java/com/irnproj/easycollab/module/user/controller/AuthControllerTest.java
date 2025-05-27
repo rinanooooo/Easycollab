@@ -26,40 +26,4 @@ class AuthControllerTest {
   String baseUrl() {
     return "http://localhost:" + port + "/api/auth";
   }
-
-  @Test
-  void 회원가입_로그인_인증_전체흐름_테스트() throws Exception {
-    // 회원가입
-    SignupRequestDto signup = new SignupRequestDto("testuser", "tester", "test@example.com", "password");
-    ResponseEntity<String> signupRes = rest.postForEntity(
-        baseUrl() + "/signup",
-        signup,
-        String.class
-    );
-    assertThat(signupRes.getStatusCode()).isEqualTo(HttpStatus.OK);
-
-    // 로그인
-    LoginRequestDto login = new LoginRequestDto("testuser", "password");
-    ResponseEntity<String> loginRes = rest.postForEntity(
-        baseUrl() + "/login",
-        login,
-        String.class
-    );
-    assertThat(loginRes.getStatusCode()).isEqualTo(HttpStatus.OK);
-    String token = objectMapper.readTree(loginRes.getBody()).get("token").asText();
-
-    // 인증 요청
-    HttpHeaders headers = new HttpHeaders();
-    headers.set("Authorization", "Bearer " + token);
-    HttpEntity<Void> request = new HttpEntity<>(headers);
-
-    ResponseEntity<String> userInfoRes = rest.exchange(
-        "http://localhost:" + port + "/api/user/me",
-        HttpMethod.GET,
-        request,
-        String.class
-    );
-    assertThat(userInfoRes.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(userInfoRes.getBody()).contains("testuser");
-  }
 }

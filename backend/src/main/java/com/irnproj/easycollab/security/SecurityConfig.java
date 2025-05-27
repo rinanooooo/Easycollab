@@ -1,6 +1,8 @@
 package com.irnproj.easycollab.security;
 
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,14 +19,14 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
+
   private final JwtUtil jwtUtil;
   private final UserDetailsService userDetailsService;
 
-  public SecurityConfig(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
-    this.jwtUtil = jwtUtil;
-    this.userDetailsService = userDetailsService;
-  }
+  @Value("${spring.profiles.active:default}")
+  private String activeProfile;
 
   @Bean
   public JwtAuthenticationFilter jwtAuthenticationFilter() {
@@ -54,20 +56,21 @@ public class SecurityConfig {
     http
         .csrf(csrf -> csrf.disable())
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/auth/**").permitAll()  // 회원가입, 로그인 경로는 인증 없이 접근 가능
-            .requestMatchers("/api/users/me").authenticated() // 로그인한 사용자만 접근 가능하도록 명시
-            .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll() // Swagger API 문서 열람 허용 (개발용)
-            .anyRequest().authenticated()                // 나머지 모든 요청은 인증 필요
-        )
+        .authorizeHttpRequests(auth -> { // 개발완료 후 수정 필요
+          auth.requestMatchers("/api/auth/**").permitAll(); // 회원가입, 로그인 경로는 인증 없이 접근 가능
+          auth.requestMatchers("/api/users/me").authenticated();  // 로그인한 사용자만 접근 가능하도록 명시
+          auth.requestMatchers("/api/teams/**").authenticated();  // 팀 관련은 인증 필요
+          if ("dev".equals(activeProfile)) {  // 개발 환경일 때만 Swagger 경로 허용
+            auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll();
+          }
+          auth.anyRequest().authenticated();// 그 외 모든 요청 인증
+        })
         .exceptionHandling(ex -> ex
             .authenticationEntryPoint((request, response, authException) ->
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED))
         )
-        // JWT 필터가 로그인 필터보다 앞에 오도록 설정
-        .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
-
-    http.cors(Customizer.withDefaults());
+        .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+        .cors(Customizer.withDefaults());
 
     return http.build();
   }

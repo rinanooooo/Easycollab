@@ -5,7 +5,10 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class LoginRequestDto { // 로그인 요청
+public class UserInfoDto {
   private String loginId;
-  private String password;
+  private String userName;
+  private String nickName;
+  private String email;
+  private String role;
 }

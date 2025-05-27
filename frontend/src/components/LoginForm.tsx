@@ -1,5 +1,4 @@
 // LoginForm.tsx
-// 로그인 폼 컴포넌트 - 사용자로부터 이메일과 비밀번호를 입력받아 로그인 요청을 수행합니다.
 
 import React, { useState } from 'react';
 import api from '../api/api';
@@ -19,6 +18,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+
       const response = await api.post('/auth/login', {
         username: email,
         password,
@@ -34,7 +34,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
      } catch (error) {
         const axiosError = error as AxiosError<{ message: string }>;
         console.error('로그인 실패:', axiosError.response?.data?.message || axiosError.message);
-        alert('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.');
+        alert('로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
       }
   };
 
@@ -42,14 +42,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     <form className="login-form" onSubmit={handleLogin}>
         <h1>Easycollab</h1>
       <div className="form-group">
-        <label htmlFor="email">이메일</label>
+        <label htmlFor="email">아이디</label>
         <input
           type="text"
           id="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          placeholder="아이디 또는 이메일"
+          placeholder="아이디"
         />
       </div>
       <div className="form-group">
