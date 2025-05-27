@@ -3,34 +3,50 @@ package com.irnproj.easycollab.module.team.service;
 import com.irnproj.easycollab.module.team.dto.TeamRequestDto;
 import com.irnproj.easycollab.module.team.dto.TeamResponseDto;
 import com.irnproj.easycollab.module.team.entity.Team;
+import com.irnproj.easycollab.module.team.entity.TeamMember;
 import com.irnproj.easycollab.module.team.repository.TeamRepository;
+import com.irnproj.easycollab.module.team.repository.TeamMemberRepository;
 import com.irnproj.easycollab.module.user.entity.User;
-import com.irnproj.easycollab.module.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
 public class TeamService {
 
   private final TeamRepository teamRepository;
-  private final UserRepository userRepository;
+  private final TeamMemberRepository teamMemberRepository;
 
-  public TeamResponseDto createTeam(TeamRequestDto requestDto, Long userId) {
-    User user = userRepository.findById(userId)
-        .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-    Team team = new Team(requestDto.getName(), requestDto.getDescription(), user);
-    Team saved = teamRepository.save(team);
-    return new TeamResponseDto(saved.getId(), saved.getName(), saved.getDescription(), user.getUserName(), saved.getCreatedAt());
-  }
+  @Transactional
+  public TeamResponseDto createTeam(TeamRequestDto request, User user) {
+    // 1. 팀 생성
+    Team team = Team.builder()
+        .name(request.getName())
+        .description(request.getDescription())
+        .owner(user)
+        .build();
 
-  public List<TeamResponseDto> getAllTeams() {
-    return teamRepository.findAll().stream()
-        .map(t -> new TeamResponseDto(
-            t.getId(), t.getName(), t.getDescription(), t.getCreatedBy().getUserName(), t.getCreatedAt()
-        )).collect(Collectors.toList());
+    teamRepository.save(team);
+
+    // 2. 팀장도 팀 멤버로 등록
+    TeamMember member = TeamMember.builder()
+        .team(team)
+        .user(user)
+        .role("LEADER") // 팀장 역할
+        .joinedAt(LocalDateTime.now())
+        .build();
+
+    teamMemberRepository.save(member);
+
+    // 3. 응답 반환
+    return new TeamResponseDto(
+        team.getId(),
+        team.getName(),
+        team.getDescription(),
+        user.getNickname()
+    );
   }
 }

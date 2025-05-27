@@ -1,7 +1,9 @@
-package com.irnproj.easycollab.module.code.entity;
+package com.irnproj.easycollab.module.comCode.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 
@@ -10,7 +12,7 @@ import java.time.LocalDateTime;
     uniqueConstraints = {@UniqueConstraint(columnNames = {"code_type", "code"})})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Code {
+public class ComCode {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,16 +22,19 @@ public class Code {
   private String codeType;
 
   @Column(nullable = false, length = 50)
-  private String code;
+  private String code; // ex: "ROLE_USER", "ROLE_ADMIN"
 
   @Column(nullable = false, length = 100)
-  private String name;
+  private String name; // ex: "일반 사용자", "관리자"
 
   @Column(length = 255)
   private String description;
 
-  private LocalDateTime createdAt = LocalDateTime.now();
-  private LocalDateTime updatedAt = LocalDateTime.now();
+  @CreatedDate
+  private LocalDateTime createdAt;
+
+  @LastModifiedDate
+  private LocalDateTime updatedAt;
 
   @PreUpdate
   public void setUpdatedAt() {
@@ -37,7 +42,7 @@ public class Code {
   }
 
   @Builder
-  public Code(String codeType, String code, String name, String description) {
+  public ComCode(String codeType, String code, String name, String description) {
     this.codeType = codeType;
     this.code = code;
     this.name = name;

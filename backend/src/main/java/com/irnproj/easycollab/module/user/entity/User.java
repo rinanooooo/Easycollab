@@ -1,13 +1,16 @@
 package com.irnproj.easycollab.module.user.entity;
 
+import com.irnproj.easycollab.module.team.entity.TeamMember;
 import jakarta.persistence.*;
 import lombok.*;
-import org.aspectj.apache.bcel.classfile.Code;
+import com.irnproj.easycollab.module.comCode.entity.ComCode;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @EntityListeners(AuditingEntityListener.class)
@@ -42,9 +45,9 @@ public class User {
   @Column(nullable = false)
   private String password;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "role_id")
-  private Code role;
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "role_id", nullable = false)
+  private ComCode role;
 
   @CreatedDate
   @Column(updatable = false)
@@ -53,13 +56,16 @@ public class User {
   @LastModifiedDate
   private LocalDateTime updatedAt;
 
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<TeamMember> teamMemberships = new ArrayList<>();
+
   @PrePersist
   public void assignUuid() {
     this.uuid = UUID.randomUUID().toString();
   }
 
   @Builder
-  public User(String loginId, String username, String nickname, String email, String password, Code role) {
+  public User(String loginId, String username, String nickname, String email, String password, ComCode role) {
     this.loginId = loginId;
     this.username = username;
     this.nickname = nickname;

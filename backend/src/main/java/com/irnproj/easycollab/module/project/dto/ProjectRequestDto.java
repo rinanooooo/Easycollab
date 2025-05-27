@@ -1,9 +1,9 @@
-package com.irnproj.easycollab.module.team.dto;
+package com.irnproj.easycollab.module.project.dto;
 
 import lombok.Getter;
 
 @Getter
-public class TeamRequestDto {
+public class ProjectRequestDto {
   private String name;
   private String description;
 }

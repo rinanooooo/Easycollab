@@ -1,12 +1,13 @@
 package com.irnproj.easycollab.module.user.service;
 
-import com.irnproj.easycollab.module.code.repository.CodeRepository;
+import com.irnproj.easycollab.module.comCode.repository.ComCodeRepository;
 import com.irnproj.easycollab.module.user.dto.SignupRequestDto;
 import com.irnproj.easycollab.module.user.dto.UserInfoDto;
 import com.irnproj.easycollab.module.user.entity.User;
 import com.irnproj.easycollab.module.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.aspectj.apache.bcel.classfile.Code;
+import java.lang.IllegalArgumentException;
+import com.irnproj.easycollab.module.comCode.entity.ComCode;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
   private final UserRepository userRepository;
-  private final CodeRepository codeRepository;
+  private final ComCodeRepository comCodeRepository;
   private final PasswordEncoder passwordEncoder;
 
   // 회원가입 로직
@@ -33,11 +34,12 @@ public class UserService {
     }
 
     // 2. 역할 코드 조회
-    Code role = codeRepository.findByCodeTypeAndCode("ROLE", "팀원")
+    ComCode role = comCodeRepository.findByCodeTypeAndCode("ROLE", "팀원")
         .orElseThrow(() -> new IllegalArgumentException("역할 코드를 찾을 수 없습니다."));
 
     // 3. 유저 엔티티 생성
     User user = User.builder()
+        .loginId(request.getLoginId())
         .username(request.getUsername())
         .email(request.getEmail())
         .nickname(request.getNickname())

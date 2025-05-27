@@ -24,7 +24,7 @@ public class UserController {
         user.getUsername(),
         user.getNickname(),
         user.getEmail(),
-        user.getRole().getName()  // 또는 .getCode()
+        user.getRole().getCode()  // 또는 .getName()
         // getCode(): 시스템/백엔드/권한 체크용
         // getName(): 프론트 UI/화면 출력용
     );

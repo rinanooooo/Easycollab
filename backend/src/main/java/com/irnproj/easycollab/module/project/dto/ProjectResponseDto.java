@@ -1,13 +1,13 @@
-package com.irnproj.easycollab.module.team.dto;
+package com.irnproj.easycollab.module.project.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class TeamResponseDto {
+public class ProjectResponseDto {
   private Long id;
   private String name;
   private String description;
-  private String ownerNickname;
+  private Long teamId;
 }
