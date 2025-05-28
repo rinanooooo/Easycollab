@@ -19,6 +19,10 @@ public class CodeInitializer {
     insertCode("ROLE", "팀원", "기본 사용자");
     insertCode("ROLE", "팀장", "사용자 및 팀 관리자");
     insertCode("ROLE", "관리자", "운영자 권한");
+    insertCode("ISSUE_STATUS", "PLANNED", "진행 예정");
+    insertCode("ISSUE_STATUS", "IN_PROGRESS", "진행 중");
+    insertCode("ISSUE_STATUS", "COMPLETED", "완료");
+    insertCode("ISSUE_STATUS", "URGENT", "긴급");
     // 필요 시 더 추가
   }
 

@@ -60,6 +60,7 @@ public class SecurityConfig {
           auth.requestMatchers("/api/auth/**").permitAll(); // 회원가입, 로그인 경로는 인증 없이 접근 가능
           auth.requestMatchers("/api/users/me").authenticated();  // 로그인한 사용자만 접근 가능하도록 명시
           auth.requestMatchers("/api/teams/**").authenticated();  // 팀 관련은 인증 필요
+          auth.requestMatchers("/api/issues/**").authenticated();  // 이슈 관련은 인증 필요
           if ("dev".equals(activeProfile)) {  // 개발 환경일 때만 Swagger 경로 허용
             auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll();
           }
