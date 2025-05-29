@@ -1,21 +1,15 @@
 package com.irnproj.easycollab.module.issue.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
-@NoArgsConstructor
+@Setter
 public class IssueRequestDto {
-  @NotBlank
-  private String title;
-  private String content;
-  @NotBlank
-  private String statusCode; // ex) "OPEN", "CLOSED"
-  @NotNull
-  private Long projectId;
-  @NotNull
-  private Long reporterId;
+  private String title;         // 이슈 제목
+  private String content;       // 이슈 내용
+  private String statusCode;    // ex: "OPEN", "IN_PROGRESS", "URGENT", "COMPLETED" 등
+  private Long projectId;       // 해당 이슈가 속한 프로젝트 ID
+  private Long reporterId;      // 이슈 작성자 (로그인 유저 ID or 선택)
+  private Long assigneeId;      // 이슈 담당자 (선택 가능)
 }

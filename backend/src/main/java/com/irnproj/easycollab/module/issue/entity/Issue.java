@@ -5,51 +5,61 @@ import com.irnproj.easycollab.module.project.entity.Project;
 import com.irnproj.easycollab.module.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
-@Table(name = "issue")
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EntityListeners(AuditingEntityListener.class)
 public class Issue {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false, length = 200)
   private String title;
 
   @Lob
-  @Column(nullable = false)
   private String content;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "status_code_id", nullable = false)
-  private ComCode status; // e.g., "OPEN", "IN_PROGRESS", "CLOSED"
+  @JoinColumn(name = "status_code")
+  private ComCode status;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "project_id", nullable = false)
+  @JoinColumn(name = "project_id")
   private Project project;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "reporter_id", nullable = false)
+  @JoinColumn(name = "reporter_id")
   private User reporter;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "assignee_id", nullable = true)
+  private User assignee;
+
+  @CreatedDate
+  @Column(updatable = false)
   private LocalDateTime createdAt;
+
+  @LastModifiedDate
   private LocalDateTime updatedAt;
 
-  @PrePersist
-  public void prePersist() {
-    this.createdAt = this.updatedAt = LocalDateTime.now();
+  public void update(String title, String content, ComCode status, Project project, User reporter, User assignee) {
+    this.title = title;
+    this.content = content;
+    this.status = status;
+    this.project = project;
+    this.reporter = reporter;
+    this.assignee = assignee; // null 허용
+    this.updatedAt = LocalDateTime.now(); // 자동 갱신 등
   }
 
-  @PreUpdate
-  public void preUpdate() {
-    this.updatedAt = LocalDateTime.now();
-  }
 }

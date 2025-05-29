@@ -1,14 +1,15 @@
 package com.irnproj.easycollab.module.team.entity;
 
+import com.irnproj.easycollab.module.comCode.entity.ComCode;
 import com.irnproj.easycollab.module.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -26,11 +27,10 @@ public class TeamMember {
   @JoinColumn(name = "user_id", nullable = false)
   private User user;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "role_code")
+  private ComCode role; // ex: TEAM_ROLE - LEADER, MEMBER
+
   @Column(nullable = false)
-  private String role; // 예: "LEADER", "MEMBER"
-
-  @CreatedDate
-  @Column(updatable = false)
-  private LocalDateTime joinedAt;
-
+  private LocalDateTime joinedAt = LocalDateTime.now();
 }

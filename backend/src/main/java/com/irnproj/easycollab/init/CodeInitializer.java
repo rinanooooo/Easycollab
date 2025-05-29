@@ -16,23 +16,22 @@ public class CodeInitializer {
 
   @PostConstruct // 이 메서드는 앱이 뜰 때 자동 실행됨
   public void init() {
-    insertCode("ROLE", "팀원", "기본 사용자");
-    insertCode("ROLE", "팀장", "사용자 및 팀 관리자");
-    insertCode("ROLE", "관리자", "운영자 권한");
-    insertCode("ISSUE_STATUS", "PLANNED", "진행 예정");
-    insertCode("ISSUE_STATUS", "IN_PROGRESS", "진행 중");
-    insertCode("ISSUE_STATUS", "COMPLETED", "완료");
-    insertCode("ISSUE_STATUS", "URGENT", "긴급");
+    insertCodeIfNotExists("ROLE", "TEAM_MEMBER", "기본 사용자");
+    insertCodeIfNotExists("ROLE", "TEAM_LEADER", "사용자 및 팀 관리자");
+    insertCodeIfNotExists("ROLE", "ADMIN", "운영자 권한");
+    insertCodeIfNotExists("ISSUE_STATUS", "PLANNED", "진행 예정");
+    insertCodeIfNotExists("ISSUE_STATUS", "IN_PROGRESS", "진행 중");
+    insertCodeIfNotExists("ISSUE_STATUS", "COMPLETED", "완료");
+    insertCodeIfNotExists("ISSUE_STATUS", "URGENT", "긴급");
     // 필요 시 더 추가
   }
 
-  private void insertCode(String type, String code, String name) {
+  private void insertCodeIfNotExists(String type, String code, String name) {
     if (!comCodeRepository.existsByCodeTypeAndCode(type, code)) {
       comCodeRepository.save(ComCode.builder()
           .codeType(type)
           .code(code)
           .name(name)
-          .description(name + " 역할입니다.")
           .build());
     }
   }

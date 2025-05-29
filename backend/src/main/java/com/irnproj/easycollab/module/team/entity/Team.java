@@ -1,6 +1,7 @@
 package com.irnproj.easycollab.module.team.entity;
 
 import com.irnproj.easycollab.common.entity.BaseTimeEntity;
+import com.irnproj.easycollab.module.project.entity.Project;
 import com.irnproj.easycollab.module.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -21,7 +22,7 @@ public class Team extends BaseTimeEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false, unique = true)
+  @Column(nullable = false, unique = true, length = 100)
   private String name;
 
   @Column(length = 255)
@@ -36,10 +37,19 @@ public class Team extends BaseTimeEntity {
   @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<TeamMember> teamMembers = new ArrayList<>();
 
+  @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<Project> projects = new ArrayList<>();
+
   @CreatedDate
   @Column(updatable = false)
   private LocalDateTime createdAt;
 
   @LastModifiedDate
   private LocalDateTime updatedAt;
+
+  public void update(String name, String description) {
+    this.name = name;
+    this.description = description;
+  }
+
 }

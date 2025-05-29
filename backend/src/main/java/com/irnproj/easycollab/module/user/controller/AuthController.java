@@ -20,15 +20,15 @@ public class AuthController {
   private final JwtUtil jwtUtil;
 
   @PostMapping("/signup")
-  public ResponseEntity<?> signup(@Valid @RequestBody SignupRequestDto request) {
-    User user = userService.register(request);
-    return ResponseEntity.ok(new SignupResponseDto("회원가입이 완료되었습니다."));
+  public ResponseEntity<String> signup(@RequestBody SignupRequestDto dto) {
+    userService.register(dto);
+    return ResponseEntity.ok("회원가입이 완료되었습니다.");
   }
 
   @PostMapping("/login")
   public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDto request) {
     User user = userService.authenticate(request.getLoginId(), request.getPassword());
     String token = jwtUtil.generateToken(user.getLoginId());
-    return ResponseEntity.ok(new LoginResponseDto(token));
+    return ResponseEntity.ok(LoginResponseDto.fromEntity(user, token));
   }
 }

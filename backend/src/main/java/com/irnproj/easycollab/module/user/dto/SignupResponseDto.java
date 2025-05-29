@@ -6,7 +6,5 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class SignupResponseDto { // 회원가입 응답
-//  private String loginId;
-//  private String uuid;
   private String message;
 }

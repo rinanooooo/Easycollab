@@ -23,11 +23,13 @@ public class ProjectController {
   public ResponseEntity<ProjectResponseDto> createProject(
       @PathVariable Long teamId,
       @RequestBody ProjectRequestDto request,
-      @AuthenticationPrincipal UserPrincipal userPrincipal
-  ) {
-    ProjectResponseDto response = projectService.createProject(teamId, request, userPrincipal.getId());
+      @AuthenticationPrincipal UserPrincipal userPrincipal) {
+
+    request.setTeamId(teamId); // DTO에 teamId 세팅
+    ProjectResponseDto response = projectService.createProject(request, userPrincipal);
     return ResponseEntity.ok(response);
   }
+
 
   // 전체 프로젝트 조회
   @GetMapping

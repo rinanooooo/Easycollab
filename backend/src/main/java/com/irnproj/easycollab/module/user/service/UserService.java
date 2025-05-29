@@ -1,13 +1,16 @@
 package com.irnproj.easycollab.module.user.service;
 
+import com.irnproj.easycollab.module.comCode.entity.ComCode;
 import com.irnproj.easycollab.module.comCode.repository.ComCodeRepository;
 import com.irnproj.easycollab.module.user.dto.SignupRequestDto;
-import com.irnproj.easycollab.module.user.dto.UserInfoDto;
+import com.irnproj.easycollab.module.user.dto.UserResponseDto;
 import com.irnproj.easycollab.module.user.entity.User;
 import com.irnproj.easycollab.module.user.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import java.lang.IllegalArgumentException;
-import com.irnproj.easycollab.module.comCode.entity.ComCode;
+import org.springframework.transaction.annotation.Transactional;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -34,8 +37,9 @@ public class UserService {
     }
 
     // 2. 역할 코드 조회
-    ComCode role = comCodeRepository.findByCodeTypeAndCode("ROLE", "팀원")
+    ComCode role = comCodeRepository.findByCodeTypeAndCode("ROLE", "TEAM_MEMBER")
         .orElseThrow(() -> new IllegalArgumentException("역할 코드를 찾을 수 없습니다."));
+
 
     // 3. 유저 엔티티 생성
     User user = User.builder()
@@ -66,16 +70,18 @@ public class UserService {
     return user;
   }
 
-  public UserInfoDto getUserInfo(Long userId) {
+  // 사용자 엔티티 조회 (내부 로직용)
+  public UserResponseDto getUserInfo(Long userId) {
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-    return new UserInfoDto(
-        user.getLoginId(),
-        user.getUsername(),
-        user.getNickname(),
-        user.getEmail(),
-        user.getRole().getCode()  // Code 객체에서 문자열 추출
-    );
+    return UserResponseDto.fromEntity(user);
   }
+
+  // 마이페이지용 사용자 정보 조회 (DTO 반환)
+  @Transactional(readOnly = true)
+  public User findById(Long id) {
+    return userRepository.findById(id)
+        .orElseThrow(() -> new EntityNotFoundException("유저를 찾을 수 없습니다."));
+  }
+
 }
