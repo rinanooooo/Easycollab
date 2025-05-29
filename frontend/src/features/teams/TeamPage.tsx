@@ -1,7 +1,7 @@
 // src/pages/TeamPage.tsx
 import React from 'react';
-import TeamForm from '../components/TeamForm';
-import TeamList from '../components/TeamList';
+import TeamForm from './components/TeamForm';
+import TeamList from './components/TeamList';
 
 const TeamPage: React.FC = () => {
   return (

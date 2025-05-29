@@ -1,16 +1,14 @@
-// App.tsx
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import LoginPage from './pages/LoginPage';
-import TeamPage from './pages/TeamPage';
+// src/App.tsx
+import AppRoutes from './features/routes/AppRoutes';
+import TopNav from './shared/nav/TopNav';
 
-const App: React.FC = () => {
+function App() {
   return (
-    <Routes>
-      <Route path="/" element={<LoginPage />} />
-      <Route path="/me" element={<TeamPage />} />
-    </Routes>
+    <>
+      <TopNav />
+      <AppRoutes />
+    </>
   );
-};
+}
 
 export default App;

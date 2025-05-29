@@ -1,0 +1,170 @@
+/* 프로젝트 카드 리스트 페이지용 스타일 */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 50px;
+  margin-bottom: 12px;
+}
+
+.filterTabs {
+  display: flex;
+  gap: 8px;
+}
+
+.filterTabs button {
+  margin: 5px 0 0 5px;
+}
+
+/* 일반 탭 버튼 */
+.tab {
+  height: 30px;
+  line-height: 30px;
+  padding: 0 12px;
+  font-size: 13px;
+  white-space: nowrap;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background-color: #f1f1f1;
+  color: #333;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.tab:hover {
+  background-color: #ccc;
+}
+
+/* 활성화된 탭 */
+.activeTab {
+  background-color: #6366f1;
+  color: white;
+  font-weight: 600;
+  height: 30px;
+  padding: 0 12px;
+  line-height: 30px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* 정렬 Select Box */
+.selectBox {
+  font-size: 13px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+/* 우측 요약 텍스트 */
+.summary {
+  font-size: 13px;
+  color: #444;
+  margin-left: 5px;
+}
+
+/* 카드 전체 레이아웃 */
+.cardGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+/* 더보기 버튼 스타일 */
+.moreToggle {
+  margin-top: 12px;
+  font-size: 14px;
+  text-align: center;
+  color: #333;
+  cursor: pointer;
+  background: #f5f5f5;
+  border-radius: 6px;
+  height: 20px;
+  padding: 5px;
+}
+
+.moreToggle:hover {
+  background-color: #e4e4e4;
+  font-weight: bold;
+}
+
+/* 필터 + 검색 wrapper */
+.filterContainer {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.checkboxLabel {
+  font-size: 13px;
+}
+
+.summaryContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+/* 반응형 대응 */
+@media (max-width: 768px) {
+  .summaryContainer {
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    padding-top: 4px;
+    margin-bottom: 12px;
+  }
+
+  .filterContainer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* 검색 input 관련 */
+.searchWrapper {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+.searchInput {
+  height: 13px;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.searchIcon {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+/* 모바일일 때 검색창 꽉 차게 */
+@media (max-width: 768px) {
+  .searchRow {
+    width: 100%;
+  }
+
+  .searchInput {
+    width: 100%;
+  }
+
+  .searchWrapper {
+    justify-content: center;
+  }
+}

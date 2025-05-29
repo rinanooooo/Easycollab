@@ -1,9 +1,9 @@
 // LoginForm.tsx
 
 import React, { useState } from 'react';
-import api from '../api/api';
+import api from '../../../api/api';
 import type { AxiosError } from 'axios';
-import '../styles/LoginForm.css';
+import styles from './LoginForm.module.css';
 
 interface LoginFormProps {
   onLoginSuccess: () => void;
@@ -39,32 +39,34 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   };
 
   return (
-    <form className="login-form" onSubmit={handleLogin}>
-        <h1>Easycollab</h1>
-      <div className="form-group">
-        <label htmlFor="email">아이디</label>
-        <input
-          type="text"
-          id="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          placeholder="아이디"
-        />
-      </div>
-      <div className="form-group">
-        <label htmlFor="password">비밀번호</label>
-        <input
-          type="password"
-          id="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          placeholder="비밀번호를 입력하세요"
-        />
-      </div>
-      <button type="submit">로그인</button>
-    </form>
+    <form className={styles['login-form']} onSubmit={handleLogin}>
+  <h1>Easycollab</h1>
+  <div className={styles.avatar}></div> {/* 추가된 이미지 영역 */}
+  <div className={styles['form-group']}>
+    <label htmlFor="email">아이디</label>
+    <input
+      type="text"
+      id="email"
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+      required
+      placeholder="아이디"
+    />
+  </div>
+  <div className={styles['form-group']}>
+    <label htmlFor="password">비밀번호</label>
+    <input
+      type="password"
+      id="password"
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      required
+      placeholder="비밀번호를 입력하세요"
+    />
+  </div>
+  <button type="submit">로그인</button>
+</form>
+
   );
 };
 

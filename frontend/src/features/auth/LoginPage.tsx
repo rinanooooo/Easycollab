@@ -1,7 +1,7 @@
-// src/pages/LoginPage.tsx
 import React from 'react';
-import LoginForm from '../components/LoginForm';
+import LoginForm from './components/LoginForm';
 import { useNavigate } from 'react-router-dom';
+import styles from './components/LoginForm.module.css';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -11,7 +11,7 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center' }}>
+    <div className={styles['login-wrapper']}>
       <LoginForm onLoginSuccess={handleLoginSuccess} />
     </div>
   );

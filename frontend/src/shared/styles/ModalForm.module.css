@@ -1,0 +1,72 @@
+/* 오버레이: 공통 */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* 모달 컨테이너 */
+.modal {
+    width: 360px;
+    padding: 24px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+}
+
+/* 제목 */
+.title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 16px;
+}
+
+/* form 구조 */
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form input,
+.form textarea,
+.form select {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+/* 버튼 영역 */
+.actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.actions button {
+    padding: 10px;
+    background-color: #6366f1;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    flex: 1;
+    font-size: 14px;
+    transition: background-color 0.2s ease;
+}
+
+.actions button:hover {
+    background-color: #4f46e5;
+}

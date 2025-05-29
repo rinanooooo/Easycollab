@@ -1,0 +1,111 @@
+/* 전체 사이드바 컨테이너 */
+.container {
+    width: 240px;
+    background-color: #fdfdfd;
+    padding: 20px;
+    border-right: 1px solid #e0e0e0;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.02);
+    font-size: 14px;
+}
+
+/* 제목과 버튼 영역 (직접 스타일링하는 경우도 많음) */
+.title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* "내 팀만" 체크박스 라벨 */
+.checkboxLabel {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* 체크박스 입력 요소 */
+.checkbox {
+    margin: 0;
+}
+
+/* 팀 목록 UL */
+.teamList {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+/* 프로젝트 목록 UL */
+.projectList {
+    list-style-type: none;
+    padding-left: 12px;
+}
+
+/* 프로젝트 항목 상단 */
+.projectItem {
+    font-size: 13px;
+    padding: 4px 8px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 이슈 개수 뱃지 */
+.badge {
+    font-size: 11px;
+    background-color: #eee;
+    color: #444;
+    border-radius: 10px;
+    padding: 2px 6px;
+    margin-left: 4px;
+}
+
+/* 팀 항목 외부 래퍼 */
+.itemWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 4px;
+    user-select: none;
+}
+
+/* 팀 이름과 펼침 아이콘 행 */
+.teamRow {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    cursor: pointer;
+}
+
+/* 팀 이름 텍스트 */
+.teamName {
+    margin-left: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 이슈 항목 */
+.issueItem {
+    font-size: 13px;
+    color: #555;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* 이슈 Hover 시 강조 효과 */
+.issueItem:hover {
+    background-color: #f1f1f1;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}

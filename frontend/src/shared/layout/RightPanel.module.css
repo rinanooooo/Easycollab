@@ -1,0 +1,74 @@
+/* 우측 패널 전체 스타일 */
+.container {
+    width: 240px;
+    padding: 20px;
+    background-color: #fefefe;
+    border-left: 1px solid #eee;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.02);
+}
+
+/* 섹션 헤더: 텍스트 + 버튼 정렬 */
+.sectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 32px;
+    margin-bottom: 12px;
+}
+
+/* 섹션 제목 (ex. 내 프로젝트, 내 이슈) */
+.sectionTitle {
+    font-size: 15px;
+    font-weight: 700;
+    color: #111;
+}
+
+/* 리스트 공통 스타일 (ul) */
+.list {
+    list-style: none;
+    padding-left: 0;
+}
+
+/* 섹션 간 여백 추가용 클래스 */
+.sectionMarginTop {
+    margin-top: 24px;
+}
+
+/* 이슈 헤더: 내 이슈 (5) 🔥1 📌2 등 정렬 */
+.issueHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #555;
+    font-weight: 600;
+}
+
+/* 리스트 아이템 (프로젝트/이슈 항목) */
+.listItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    margin-bottom: 6px;
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+/* 리스트 아이템 hover 시 강조 */
+.listItem:hover {
+    background-color: #e4e4e4;
+    font-weight: bold;
+}
+
+/* + 더보기 / − 접기 정렬용 */
+.centerItem {
+    justify-content: center;
+    text-align: center;
+    color: #444;
+    background-color: #f5f5f5;
+}

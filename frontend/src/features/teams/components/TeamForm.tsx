@@ -1,6 +1,6 @@
 // src/components/TeamForm.tsx
 import React, { useState } from 'react';
-import api from '../api/api';
+import api from '../../../api/api';
 import type { AxiosError } from 'axios'; // 타입만 쓸 경우에는 type import도 가능
 
 
