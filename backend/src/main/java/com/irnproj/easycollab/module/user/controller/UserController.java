@@ -23,7 +23,4 @@ public class UserController {
     User user = userService.findById(userPrincipal.getId());
     return ResponseEntity.ok(UserResponseDto.fromEntity(user));
   }
-
-
-
 }

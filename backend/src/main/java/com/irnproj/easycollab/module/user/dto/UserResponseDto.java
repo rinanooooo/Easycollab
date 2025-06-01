@@ -12,16 +12,16 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserResponseDto {
   private String loginId;
-  private String userName;
-  private String nickName;
+  private String username;
+  private String nickname;
   private String email;
   private String role;
 
   public static UserResponseDto fromEntity(User user) {
     return UserResponseDto.builder()
         .loginId(user.getLoginId())
-        .userName(user.getUsername())
-        .nickName(user.getNickname())
+        .username(user.getUsername())
+        .nickname(user.getNickname())
         .email(user.getEmail())
         .role(user.getRole().getCode())  // 또는 .getName()
         .build();

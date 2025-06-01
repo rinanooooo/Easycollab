@@ -1,17 +1,17 @@
 package com.irnproj.easycollab.module.project.dto;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
 
 @Getter
-@Setter
+@NoArgsConstructor
 public class ProjectRequestDto {
   private String name;
   private String description;
-  private Long teamId;
-  private String statusCode;
   private LocalDate startDate;
   private LocalDate endDate;
+  private String statusCode; // ex: "PLANNED"
 }

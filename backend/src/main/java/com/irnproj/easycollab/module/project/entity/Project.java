@@ -45,7 +45,10 @@ public class Project {
   @JoinColumn(name = "status_code")
   private ComCode status;
 
+  // 예정인 경우 시작/종료일 미정
+  @Column
   private LocalDate startDate;
+  @Column
   private LocalDate endDate;
 
   @CreatedDate
@@ -57,4 +60,12 @@ public class Project {
 
   @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Issue> issues = new ArrayList<>();
+
+  public void update(String name, String description, LocalDate startDate, LocalDate endDate, ComCode status) {
+    this.name = name;
+    this.description = description;
+    this.startDate = startDate;
+    this.endDate = endDate;
+    this.status = status;
+  }
 }

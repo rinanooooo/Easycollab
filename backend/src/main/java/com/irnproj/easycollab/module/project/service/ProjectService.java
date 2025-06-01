@@ -2,22 +2,24 @@ package com.irnproj.easycollab.module.project.service;
 
 import com.irnproj.easycollab.module.comCode.entity.ComCode;
 import com.irnproj.easycollab.module.comCode.repository.ComCodeRepository;
+import com.irnproj.easycollab.module.notification.service.NotificationService;
 import com.irnproj.easycollab.module.project.dto.ProjectRequestDto;
 import com.irnproj.easycollab.module.project.dto.ProjectResponseDto;
 import com.irnproj.easycollab.module.project.entity.Project;
 import com.irnproj.easycollab.module.project.repository.ProjectRepository;
 import com.irnproj.easycollab.module.team.entity.Team;
+import com.irnproj.easycollab.module.team.entity.TeamMember;
 import com.irnproj.easycollab.module.team.repository.TeamMemberRepository;
 import com.irnproj.easycollab.module.team.repository.TeamRepository;
 import com.irnproj.easycollab.module.user.entity.User;
 import com.irnproj.easycollab.module.user.repository.UserRepository;
-import com.irnproj.easycollab.security.UserPrincipal;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,73 +28,221 @@ public class ProjectService {
 
   private final ProjectRepository projectRepository;
   private final TeamRepository teamRepository;
+  private final ComCodeRepository comCodeRepository;
   private final UserRepository userRepository;
   private final TeamMemberRepository teamMemberRepository;
-  private final ComCodeRepository comCodeRepository;
+  private final NotificationService notificationService;
 
   // 프로젝트 생성
-  @Transactional
-  public ProjectResponseDto createProject(ProjectRequestDto requestDto, UserPrincipal userPrincipal) {
-    Team team = teamRepository.findById(requestDto.getTeamId())
-        .orElseThrow(() -> new EntityNotFoundException("해당 팀이 존재하지 않았습니다."));
+  public ProjectResponseDto createProject(Long teamId, ProjectRequestDto requestDto, Long userId) {
+    Team team = teamRepository.findById(teamId)
+        .orElseThrow(() -> new IllegalArgumentException("팀을 찾을 수 없습니다."));
 
-    User user = userRepository.findById(userPrincipal.getId())
-        .orElseThrow(() -> new EntityNotFoundException("유저 정보를 찾을 수 없습니다."));
+    ComCode status = comCodeRepository.findByCodeTypeAndCode("PROJECT_STATUS", requestDto.getStatusCode())
+        .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 상태 코드입니다."));
 
-    // 상태 코드 설정 (중요)
-    ComCode statusCode = comCodeRepository.findByCodeTypeAndCode("ISSUE_STATUS", requestDto.getStatusCode())
-        .orElseThrow(() -> new IllegalArgumentException("상태 코드 없음"));
-
-    // 프로젝트 생성 및 저장
     Project project = Project.builder()
-        .team(team)
         .name(requestDto.getName())
         .description(requestDto.getDescription())
-        .createdBy(user)
-        .status(statusCode)
         .startDate(requestDto.getStartDate())
         .endDate(requestDto.getEndDate())
+        .status(status)
+        .team(team)
         .build();
 
-    Project saved = projectRepository.save(project);
+    projectRepository.save(project);
 
-    // 응답 DTO 반환
-    return ProjectResponseDto.fromEntity(saved);
+    // 프로젝트 생성 후 알림 전송
+    List<TeamMember> members = teamMemberRepository.findByTeam(project.getTeam());
+
+    for (TeamMember member : members) {
+      if (!member.getUser().getId().equals(userId)) { // 생성자 제외
+        notificationService.createNotification(
+            member.getUser().getId(),
+            "신규 프로젝트가 생성됐습니다. '" + project.getName() + "'",
+            "/projects/" + project.getId()
+        );
+      }
+    }
+
+    return ProjectResponseDto.builder()
+        .id(project.getId())
+        .name(project.getName())
+        .description(project.getDescription())
+        .teamName(team.getName())
+        .isMyProject(true)
+        .myRole("생성자") // 나중에 로직에 따라 변경 가능
+        .createdAt(project.getCreatedAt())
+        .updatedAt(project.getUpdatedAt())
+        .startDate(project.getStartDate())
+        .endDate(project.getEndDate())
+        .statusCode(status.getCode())
+        .statusName(status.getName())
+        .build();
   }
 
-  // 전체 프로젝트 조회
-  @Transactional(readOnly = true)
+
+  // 전체 프로젝트 목록 조회
   public List<ProjectResponseDto> getAllProjects() {
-    return projectRepository.findAll().stream()
-        .map(ProjectResponseDto::fromEntity)
+    List<Project> projects = projectRepository.findAll();
+
+    return projects.stream()
+        .map(project -> ProjectResponseDto.builder()
+            .id(project.getId())
+            .name(project.getName())
+            .description(project.getDescription())
+            .teamName(project.getTeam().getName())
+            .isMyProject(false)
+            .myRole(null)
+            .createdAt(project.getCreatedAt())
+            .updatedAt(project.getUpdatedAt())
+            .startDate(project.getStartDate())
+            .endDate(project.getEndDate())
+            .statusCode(getCode(project.getStatus()))
+            .statusName(getName(project.getStatus()))
+            .build())
         .collect(Collectors.toList());
   }
 
-  // 팀 프로젝트 조회
-  @Transactional(readOnly = true)
-  public List<ProjectResponseDto> getProjectsByTeam(Long teamId) {
-    return projectRepository.findAllByTeamId(teamId).stream()
-        .map(ProjectResponseDto::fromEntity)
+  // 프로젝트명 검색
+  public List<ProjectResponseDto> searchProjectsByName(String keyword) {
+    List<Project> projects = projectRepository.findByNameContainingIgnoreCase(keyword);
+
+    return projects.stream()
+        .map(project -> ProjectResponseDto.builder()
+            .id(project.getId())
+            .name(project.getName())
+            .description(project.getDescription())
+            .teamName(project.getTeam().getName())
+            .isMyProject(false)
+            .myRole(null)
+            .createdAt(project.getCreatedAt())
+            .updatedAt(project.getUpdatedAt())
+            .startDate(project.getStartDate())
+            .endDate(project.getEndDate())
+            .statusCode(project.getStatus() != null ? project.getStatus().getCode() : null)
+            .statusName(project.getStatus() != null ? project.getStatus().getName() : null)
+            .build())
         .collect(Collectors.toList());
   }
 
-  // 사용자 프로젝트 조회
-  @Transactional(readOnly = true)
+  // 단일 프로젝트 상세 조회 (누구나 조회 가능)
+  public ProjectResponseDto getProjectById(Long projectId, Long userId) {
+    Project project = projectRepository.findById(projectId)
+        .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다."));
+
+    boolean isMyProject = false;
+    String myRole = null;
+
+    // 유저가 로그인한 경우 → 팀 멤버 여부 확인
+    if (userId != null) {
+      User user = userRepository.findById(userId)
+          .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
+
+      Optional<TeamMember> memberOpt = teamMemberRepository.findByTeamAndUser(project.getTeam(), user);
+      if (memberOpt.isPresent()) {
+        isMyProject = true;
+        myRole = memberOpt.get().getRole().getName(); // ex: "팀장", "팀원"
+      }
+    }
+
+    return ProjectResponseDto.builder()
+        .id(project.getId())
+        .name(project.getName())
+        .description(project.getDescription())
+        .teamName(project.getTeam().getName())
+        .isMyProject(isMyProject)
+        .myRole(myRole)
+        .createdAt(project.getCreatedAt())
+        .updatedAt(project.getUpdatedAt())
+        .startDate(project.getStartDate())
+        .endDate(project.getEndDate())
+        .statusCode(project.getStatus() != null ? project.getStatus().getCode() : null)
+        .statusName(project.getStatus() != null ? project.getStatus().getName() : null)
+        .build();
+  }
+
+  // 내 프로젝트 목록 조회
   public List<ProjectResponseDto> getMyProjects(Long userId) {
-    List<Long> teamIds = teamMemberRepository.findAllByUserId(userId).stream()
-        .map(tm -> tm.getTeam().getId())
-        .toList();
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
 
-    return projectRepository.findAllByTeamIdIn(teamIds).stream()
-        .map(ProjectResponseDto::fromEntity)
+    List<TeamMember> memberships = teamMemberRepository.findByUser(user);
+
+    return memberships.stream()
+        .flatMap(tm -> tm.getTeam().getProjects().stream()
+            .map(project -> ProjectResponseDto.builder()
+                .id(project.getId())
+                .name(project.getName())
+                .description(project.getDescription())
+                .teamName(project.getTeam().getName())
+                .isMyProject(true)
+                .myRole(tm.getRole().getName())
+                .createdAt(project.getCreatedAt())
+                .updatedAt(project.getUpdatedAt())
+                .startDate(project.getStartDate())
+                .endDate(project.getEndDate())
+                .statusCode(project.getStatus() != null ? project.getStatus().getCode() : null)
+                .statusName(project.getStatus() != null ? project.getStatus().getName() : null)
+                .build()))
         .collect(Collectors.toList());
   }
 
-  // 단건 조회
-  @Transactional(readOnly = true)
-  public ProjectResponseDto getProjectById(Long id) {
-    Project project = projectRepository.findById(id)
-        .orElseThrow(() -> new EntityNotFoundException("프로젝트를 찾을 수 없습니다."));
-    return ProjectResponseDto.fromEntity(project);
+  // 프로젝트 수정
+  public ProjectResponseDto updateProject(Long projectId, ProjectRequestDto requestDto, Long userId) {
+    Project project = projectRepository.findById(projectId)
+        .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다."));
+
+    // 팀장만 수정 가능
+    if (!project.getTeam().getOwner().getId().equals(userId)) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "팀장만 수정할 수 있습니다.");
+    }
+
+    ComCode status = comCodeRepository.findByCodeTypeAndCode("PROJECT_STATUS", requestDto.getStatusCode())
+        .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 상태 코드입니다."));
+
+    project.update(
+        requestDto.getName(),
+        requestDto.getDescription(),
+        requestDto.getStartDate(),
+        requestDto.getEndDate(),
+        status
+    );
+
+    return ProjectResponseDto.builder()
+        .id(project.getId())
+        .name(project.getName())
+        .description(project.getDescription())
+        .teamName(project.getTeam().getName())
+        .isMyProject(true)
+        .myRole("팀장")
+        .createdAt(project.getCreatedAt())
+        .updatedAt(project.getUpdatedAt())
+        .startDate(project.getStartDate())
+        .endDate(project.getEndDate())
+        .statusCode(status.getCode())
+        .statusName(status.getName())
+        .build();
+  }
+
+  // 프로젝트 삭제
+  public void deleteProject(Long projectId, Long userId) {
+    Project project = projectRepository.findById(projectId)
+        .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다."));
+
+    // 팀장인지 확인
+    if (!project.getTeam().getOwner().getId().equals(userId)) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "팀장만 삭제할 수 있습니다.");
+    }
+
+    projectRepository.delete(project);
+  }
+
+  private String getCode(ComCode code) {
+    return code != null ? code.getCode() : null;
+  }
+
+  private String getName(ComCode code) {
+    return code != null ? code.getName() : null;
   }
 }

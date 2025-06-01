@@ -22,7 +22,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   private final JwtUtil jwtUtil;
   private final UserDetailsService userDetailsService;
 
-  // import 필요: org.slf4j.Logger;
   private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
   public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
@@ -46,23 +45,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 토큰에서 사용자 loginId 추출
         String loginId = jwtUtil.extractUsername(token);
 
-        // loginId 기반으로 사용자 정보 조회
-        UserDetails userDetails = userDetailsService.loadUserByUsername(loginId);
+        // loginId가 존재하고 아직 인증되지 않은 경우만 처리
+        if (loginId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-        // 토큰이 유효하면 인증 객체 생성 후 SecurityContext에 등록
-        if (jwtUtil.isTokenValid(token, userDetails)) {
-          UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-              userDetails, null, userDetails.getAuthorities()
-          );
-          SecurityContextHolder.getContext().setAuthentication(authentication);
+          // loginId 기반으로 사용자 정보 조회
+          UserDetails userDetails = userDetailsService.loadUserByUsername(loginId);
+
+          // 토큰 유효성 검사
+          if (jwtUtil.isTokenValid(token, userDetails)) {
+
+            logger.info("JWT 필터 작동: loginId = {}", loginId);
+            logger.info("인증 성공: {}", userDetails.getUsername());
+            // 인증 객체 생성 후 SecurityContext에 등록
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities()
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+          }
         }
       }
     } catch (Exception e) {
-      // 예외 발생 시 로그 출력 (권장)
+      // 예외 발생 시 경고 로그 출력
       logger.warn("JWT 인증 실패: {}", e.getMessage());
     }
 
-    // 다음 필터로 넘김
+    // 다음 필터로 요청 전달
     filterChain.doFilter(request, response);
   }
 
