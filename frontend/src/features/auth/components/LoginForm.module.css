@@ -51,6 +51,18 @@
     outline: none;
 }
 
+.form-signup-now {
+    font-size: 13px;
+    font-weight: 500;
+    color: #666;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.form-signup-now:hover {
+    font-weight: bold;
+}
+
 button {
     width: 100%;
     margin-top: 20px;
@@ -65,4 +77,27 @@ button {
 
 button:hover {
     background-color: #444;
+}
+
+/* 회원가입 성공 모달 */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background: white;
+    padding: 20px 32px;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }

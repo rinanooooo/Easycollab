@@ -91,3 +91,48 @@
     background-color: #e4e4e4;
     font-weight: bold;
 }
+
+/* ⋮ 점세개 공통 메뉴 스타일 */
+.menuButton {
+    color: #4B5563 !important;
+    font-size: 20px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0 8px;
+    line-height: 1;
+}
+
+.menuButton:focus,
+.menuButton:hover {
+    background: none;
+    outline: none;
+}
+
+/* 메뉴 드롭다운: 점세개 바로 아래에 위치하도록 top 조정 */
+.menuDropdown {
+    position: absolute;
+    right: 0;
+
+    /* 댓글과 같은 위치 */
+    background: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    min-width: 100px;
+    font-size: 13px;
+    z-index: 10;
+}
+
+/* 공통 메뉴 항목 */
+.menuItem {
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, font-weight 0.2s ease;
+}
+
+/* hover 시 강조 효과 */
+.menuItem:hover {
+    background-color: #e5e7eb;
+    font-weight: 600;
+}
