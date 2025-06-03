@@ -7,32 +7,42 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+
 @Component
-@Profile("dev") // dev 프로필일 때만 실행
+@Profile("dev") // ✅ 개발 환경에서만 실행됨
 @RequiredArgsConstructor
 public class CodeInitializer {
 
   private final ComCodeRepository comCodeRepository;
 
-  @PostConstruct // 이 메서드는 앱이 뜰 때 자동 실행됨
+  @PostConstruct
   public void init() {
-    insertCodeIfNotExists("ROLE", "TEAM_MEMBER", "기본 사용자");
-    insertCodeIfNotExists("ROLE", "TEAM_LEADER", "사용자 및 팀 관리자");
-    insertCodeIfNotExists("ROLE", "ADMIN", "운영자 권한");
-    insertCodeIfNotExists("ISSUE_STATUS", "PLANNED", "진행 예정");
-    insertCodeIfNotExists("ISSUE_STATUS", "IN_PROGRESS", "진행 중");
-    insertCodeIfNotExists("ISSUE_STATUS", "COMPLETED", "완료");
-    insertCodeIfNotExists("ISSUE_STATUS", "URGENT", "긴급");
-    // 필요 시 더 추가
+    // 사용자 직급 코드
+    insertCode("ROLE", "OWNER", "소유자", "팀을 생성한 사람");
+    insertCode("ROLE", "ADMIN", "관리자", "팀 관리 권한 보유자");
+    insertCode("ROLE", "MEMBER", "팀원", "일반 팀원");
+    insertCode("ROLE", "GUEST", "게스트", "읽기 전용 멤버");
+
+    // 이슈/프로젝트 상태 코드
+    insertCode("STATUS", "PLANNED", "예정", "시작 전 상태");
+    insertCode("STATUS", "IN_PROGRESS", "진행중", "작업 중인 상태");
+    insertCode("STATUS", "HOLD", "보류", "일시 중지 상태");
+    insertCode("STATUS", "COMPLETED", "완료", "작업 완료");
+    insertCode("STATUS", "URGENT", "긴급", "우선 처리 필요");
   }
 
-  private void insertCodeIfNotExists(String type, String code, String name) {
-    if (!comCodeRepository.existsByCodeTypeAndCode(type, code)) {
-      comCodeRepository.save(ComCode.builder()
-          .codeType(type)
+  private void insertCode(String codeType, String code, String name, String description) {
+    boolean exists = comCodeRepository.existsByCodeTypeAndCode(codeType, code);
+    if (!exists) {
+      ComCode codeEntity = ComCode.builder()
+          .codeType(codeType)
           .code(code)
           .name(name)
-          .build());
+          .description(description)
+          .build();
+      comCodeRepository.save(codeEntity);
     }
   }
+
 }

@@ -1,9 +1,12 @@
 package com.irnproj.easycollab.module.comCode.service;
 
+import com.irnproj.easycollab.module.comCode.dto.ComCodeResponseDto;
+import com.irnproj.easycollab.module.comCode.exception.ComCodeNotFoundException;
 import com.irnproj.easycollab.module.comCode.repository.ComCodeRepository;
 import lombok.RequiredArgsConstructor;
 import com.irnproj.easycollab.module.comCode.entity.ComCode;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -17,8 +20,22 @@ public class ComCodeService {
     return comCodeRepository.findByCodeType(codeType);
   }
 
-  public ComCode getCode(String codeType, String code) {
-    return comCodeRepository.findByCodeTypeAndCode(codeType, code)
-        .orElseThrow(() -> new IllegalArgumentException("코드를 찾을 수 없습니다."));
+  @Transactional(readOnly = true)
+  public List<ComCodeResponseDto> getComCodesByType(String codeType) {
+    List<ComCode> codeList = comCodeRepository.findByCodeType(codeType);
+
+    return codeList.stream()
+        .map(ComCodeResponseDto::new)
+        .toList();
   }
+
+  @Transactional(readOnly = true)
+  public ComCodeResponseDto getComCode(String codeType, String code) {
+    ComCode comCode = comCodeRepository.findByCodeTypeAndCode(codeType, code)
+        .orElseThrow(() -> new ComCodeNotFoundException(
+            String.format("[%s:%s] 코드가 존재하지 않습니다.", codeType, code))
+        );
+    return new ComCodeResponseDto(comCode);
+  }
+
 }

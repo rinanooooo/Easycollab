@@ -8,10 +8,11 @@ import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "code",
-    uniqueConstraints = {@UniqueConstraint(columnNames = {"code_type", "code"})})
 @Getter
+@AllArgsConstructor
+@Builder
+@Entity
+@Table(name = "com_code", uniqueConstraints = {@UniqueConstraint(columnNames = {"code_type", "code"})})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ComCode extends BaseTimeEntity {
 
@@ -20,33 +21,16 @@ public class ComCode extends BaseTimeEntity {
   private Long id;
 
   @Column(name = "code_type", nullable = false, length = 50)
-  private String codeType;
+  private String codeType; // 코드 그룹명 (ex: ISSUE_STATUS, ROLE)
 
   @Column(nullable = false, length = 50)
-  private String code; // ex: "ROLE_USER", "ROLE_ADMIN"
+  private String code;     // 실제 코드 (ex: PLANNED, MANAGER)
 
   @Column(nullable = false, length = 100)
-  private String name; // ex: "일반 사용자", "관리자"
+  private String name;     // 코드 이름 (ex: 예정, 부장)
 
   @Column(length = 255)
   private String description;
 
-  @CreatedDate
-  private LocalDateTime createdAt;
-
-  @LastModifiedDate
-  private LocalDateTime updatedAt;
-
-  @PreUpdate
-  public void setUpdatedAt() {
-    this.updatedAt = LocalDateTime.now();
-  }
-
-  @Builder
-  public ComCode(String codeType, String code, String name, String description) {
-    this.codeType = codeType;
-    this.code = code;
-    this.name = name;
-    this.description = description;
-  }
+  // @CreatedDate, @LastModifiedDate → BaseTimeEntity에 포함
 }

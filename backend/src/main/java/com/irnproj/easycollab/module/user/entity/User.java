@@ -1,63 +1,71 @@
 package com.irnproj.easycollab.module.user.entity;
 
 import com.irnproj.easycollab.common.entity.BaseTimeEntity;
+import com.irnproj.easycollab.module.comCode.entity.ComCode;
+import com.irnproj.easycollab.module.comment.entity.Comment;
+import com.irnproj.easycollab.module.issue.entity.Issue;
+import com.irnproj.easycollab.module.notification.entity.Notification;
+import com.irnproj.easycollab.module.project.entity.ProjectMember;
 import com.irnproj.easycollab.module.team.entity.TeamMember;
 import jakarta.persistence.*;
 import lombok.*;
-import com.irnproj.easycollab.module.comCode.entity.ComCode;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @Table(name = "users")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends BaseTimeEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false, unique = true, updatable = false, length = 36)
-  private String uuid;
-
-  @Column(nullable = false, unique = true, length = 50)
+  @Column(nullable = false, unique = true, length = 100)
   private String loginId;
 
-  @Column(nullable = false, unique = true, length = 50)
+  @Column(nullable = false, length = 100)
   private String username;
 
   @Column(nullable = false, unique = true, length = 100)
   private String email;
 
-  @Column(nullable = false, unique = true, length = 30)
-  private String nickname;
-
-  @Column(nullable = false)
+  @Column(nullable = false, length = 100)
   private String password;
 
-  @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name = "role_id", nullable = false)
+  @Column(nullable = false, length = 50)
+  private String nickname;
+
+  @Column(name = "profile_image_url", length = 255)
+  private String profileImageUrl;
+
+  @Column(nullable = false, unique = true, updatable = false)
+  private String uuid;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "role_code_id")
   private ComCode role;
+// → role.getCodeType() == "ROLE"
 
-  @CreatedDate
-  @Column(updatable = false)
-  private LocalDateTime createdAt;
+  @OneToMany(mappedBy = "user")
+  private List<TeamMember> teamMembers = new ArrayList<>();
 
-  @LastModifiedDate
-  private LocalDateTime updatedAt;
+  @OneToMany(mappedBy = "user")
+  private List<ProjectMember> projectMembers = new ArrayList<>();
 
-  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<TeamMember> teamMemberships = new ArrayList<>();
+  @OneToMany(mappedBy = "assignee")
+  private List<Issue> issues = new ArrayList<>();
+
+  @OneToMany(mappedBy = "writer")
+  private List<Comment> comments = new ArrayList<>();
+
+  @OneToMany(mappedBy = "user")
+  private List<Notification> notifications = new ArrayList<>();
+
+  // @CreatedDate, @LastModifiedDate → BaseTimeEntity에 포함
 
   @PrePersist
   public void assignUuid() {
@@ -72,5 +80,13 @@ public class User extends BaseTimeEntity {
     this.email = email;
     this.password = password;
     this.role = role;
+  }
+
+  public String getRoleName() {
+    return role != null ? role.getName() : "일반 사용자";
+  }
+
+  public String getJoinedDateFormatted() {
+    return getCreatedAt() != null ? getCreatedAt().toLocalDate().toString() : "";
   }
 }

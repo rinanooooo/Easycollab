@@ -1,48 +1,36 @@
 package com.irnproj.easycollab.module.project.dto;
 
+import com.irnproj.easycollab.module.project.entity.Project;
 import lombok.*;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Getter
-@Builder
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class ProjectResponseDto {
-  // 프로젝트 고유 식별자
+
   private Long id;
 
-  // 프로젝트 이름
+  @JsonProperty("projectName")
   private String name;
 
-  // 프로젝트 설명
   private String description;
 
-  // 소속 팀 이름
+  private String statusName;
+
+  private Long teamId;
   private String teamName;
 
-  // 로그인한 사용자가 이 프로젝트에 참여 중인지 여부
-  private boolean isMyProject;
-
-  // 로그인한 사용자의 프로젝트 내 역할 (예: "팀장", "참여자")
-  private String myRole;
-
-  // 프로젝트 생성일 (등록일)
-  private LocalDateTime createdAt;
-
-  // 프로젝트 마지막 수정일
-  private LocalDateTime updatedAt;
-
-  // 프로젝트 시작일 (예정 상태일 경우 null 가능)
-  private LocalDate startDate;
-
-  // 프로젝트 종료일 (완료된 프로젝트에만 존재할 수 있음)
-  private LocalDate endDate;
-
-  // 프로젝트 상태 코드 (예: "PLANNED", "IN_PROGRESS", "COMPLETED")
-  private String statusCode;
-
-  // 프로젝트 상태 이름 (예: "예정", "진행 중", "완료")
-  private String statusName;
+  public static ProjectResponseDto from(Project project) {
+    return ProjectResponseDto.builder()
+        .id(project.getId())
+        .name(project.getName())
+        .description(project.getDescription())
+        .statusName(project.getStatus().getName())
+        .teamId(project.getTeam().getId())
+        .teamName(project.getTeam().getTeamName())
+        .build();
+  }
 }

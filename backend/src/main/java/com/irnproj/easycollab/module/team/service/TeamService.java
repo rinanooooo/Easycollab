@@ -1,5 +1,9 @@
 package com.irnproj.easycollab.module.team.service;
 
+import com.irnproj.easycollab.common.exception.CustomException;
+import com.irnproj.easycollab.common.exception.ErrorCode;
+import com.irnproj.easycollab.module.comCode.entity.ComCode;
+import com.irnproj.easycollab.module.comCode.repository.ComCodeRepository;
 import com.irnproj.easycollab.module.team.dto.TeamMemberResponseDto;
 import com.irnproj.easycollab.module.team.dto.TeamRequestDto;
 import com.irnproj.easycollab.module.team.dto.TeamResponseDto;
@@ -10,9 +14,7 @@ import com.irnproj.easycollab.module.team.repository.TeamRepository;
 import com.irnproj.easycollab.module.user.entity.User;
 import com.irnproj.easycollab.module.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,158 +23,123 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TeamService {
 
-  private final UserRepository userRepository;
-  private final TeamMemberRepository teamMemberRepository;
   private final TeamRepository teamRepository;
+  private final UserRepository userRepository;
+  private final ComCodeRepository comCodeRepository;
+  private final TeamMemberRepository teamMemberRepository;
 
-  // 팀 생성
-  public List<TeamResponseDto> getMyTeams(Long userId) {
-    User user = userRepository.findById(userId)
-        .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
+  /**
+   * 팀 생성
+   */
+  public Long createTeam(TeamRequestDto requestDto, Long userId) {
+    User user = findUserById(userId);
+    ComCode roleTeamLeader = findComCode("ROLE", "팀장");
 
-    List<TeamMember> memberships = teamMemberRepository.findByUser(user); // EntityGraph 적용됨
+    Team team = Team.builder()
+        .teamName(requestDto.getTeamName())
+        .description(requestDto.getDescription())
+        .owner(user)
+        .build();
 
-    return memberships.stream()
-        .map(tm -> {
-          Team team = tm.getTeam();
+    teamRepository.save(team);
 
-          return TeamResponseDto.builder()
-              .id(team.getId())
-              .name(team.getName())
-              .description(team.getDescription())
-              .ownerNickname(team.getOwner().getNickname())
-              .isMyTeam(true)
-              .memberCount(team.getTeamMembers() != null ? team.getTeamMembers().size() : 0)
-              .myRole(tm.getRole() != null ? tm.getRole().getName() : "팀원")
-              .createdAt(team.getCreatedAt())
-              .build();
-        })
-        .collect(Collectors.toList());
+    TeamMember teamMember = TeamMember.builder()
+        .user(user)
+        .team(team)
+        .role(roleTeamLeader)
+        .build();
+
+    teamMemberRepository.save(teamMember);
+    return team.getId();
   }
 
-  // 팀 전체 목록 조회
-  public List<TeamResponseDto> getAllTeams() {
-    return teamRepository.findAll().stream()
-        .map(team -> TeamResponseDto.builder()
-            .id(team.getId())
-            .name(team.getName())
-            .description(team.getDescription())
-            .ownerNickname(team.getOwner().getNickname())
-            .isMyTeam(false) // 전체 팀 조회이므로 false
-            .memberCount(team.getTeamMembers() != null ? team.getTeamMembers().size() : 0)
-            .myRole(null)
-            .createdAt(team.getCreatedAt())
-            .build())
-        .collect(Collectors.toList());
-  }
+  /**
+   * 전체 팀 조회 (내 팀 필터링 옵션 포함)
+   */
+  public List<TeamResponseDto> getAllTeams(Long userId, Boolean onlyMyTeam) {
+    List<Team> teams = teamRepository.findAll();
 
-  // 팀명 기반 검색
-  public List<TeamResponseDto> searchTeamsByName(String keyword) {
-    List<Team> teams = teamRepository.findByNameContainingIgnoreCase(keyword);
+    if (Boolean.TRUE.equals(onlyMyTeam)) {
+      List<Long> myTeamIds = teamMemberRepository.findTeamIdsByUserId(userId);
+      teams = teams.stream()
+          .filter(team -> myTeamIds.contains(team.getId()))
+          .collect(Collectors.toList());
+    }
 
     return teams.stream()
-        .map(team -> TeamResponseDto.builder()
-            .id(team.getId())
-            .name(team.getName())
-            .description(team.getDescription())
-            .ownerNickname(team.getOwner().getNickname())
-            .isMyTeam(false)
-            .memberCount(team.getTeamMembers() != null ? team.getTeamMembers().size() : 0)
-            .myRole(null)
-            .createdAt(team.getCreatedAt())
-            .build())
+        .map(team -> TeamResponseDto.of(team, userId))
         .collect(Collectors.toList());
   }
 
-  // 단일 팀 상세 조회
+  /**
+   * 단일 팀 조회
+   */
   public TeamResponseDto getTeamById(Long teamId) {
-    Team team = teamRepository.findById(teamId)
-        .orElseThrow(() -> new IllegalArgumentException("팀을 찾을 수 없습니다."));
-
-    return TeamResponseDto.builder()
-        .id(team.getId())
-        .name(team.getName())
-        .description(team.getDescription())
-        .ownerNickname(team.getOwner().getNickname())
-        .isMyTeam(false) // 내 팀 여부 판단은 다음 단계에서
-        .memberCount(team.getTeamMembers() != null ? team.getTeamMembers().size() : 0)
-        .myRole(null)
-        .createdAt(team.getCreatedAt())
-        .build();
+    Team team = findTeamById(teamId);
+    return TeamResponseDto.of(team, null); // 필요 시 userId 넘겨 isMyTeam 처리 가능
   }
 
-  // 내가 속한 팀만 상세 조회 가능
-  public TeamResponseDto getMyTeamById(Long teamId, Long userId) {
-    Team team = teamRepository.findById(teamId)
-        .orElseThrow(() -> new IllegalArgumentException("팀을 찾을 수 없습니다."));
+  /**
+   * 팀 수정
+   */
+  public void updateTeam(Long teamId, TeamRequestDto requestDto, Long userId) {
+    Team team = findTeamById(teamId);
+    checkOwnerAuthorization(team, userId);
 
-    User user = userRepository.findById(userId)
-        .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
-
-    TeamMember member = teamMemberRepository.findByTeamAndUser(team, user)
-        .orElseThrow(() -> new IllegalStateException("해당 팀의 구성원이 아닙니다."));
-
-    return TeamResponseDto.builder()
-        .id(team.getId())
-        .name(team.getName())
-        .description(team.getDescription())
-        .ownerNickname(team.getOwner().getNickname())
-        .isMyTeam(true)
-        .memberCount(team.getTeamMembers() != null ? team.getTeamMembers().size() : 0)
-        .myRole(member.getRole() != null ? member.getRole().getName() : "팀원")
-        .createdAt(team.getCreatedAt())
-        .build();
+    team.update(requestDto.getTeamName(), requestDto.getDescription());
+    teamRepository.save(team);
   }
 
-  // 팀 수정 (팀장 권한)
-  public TeamResponseDto updateTeam(Long teamId, TeamRequestDto requestDto, Long userId) {
-    Team team = teamRepository.findById(teamId)
-        .orElseThrow(() -> new IllegalArgumentException("팀을 찾을 수 없습니다."));
 
-    // 팀장 권한 확인
-    if (!team.getOwner().getId().equals(userId)) {
-      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "팀장만 수정할 수 있습니다.");
-    }
-
-    team.update(requestDto.getName(), requestDto.getDescription());
-
-    return TeamResponseDto.builder()
-        .id(team.getId())
-        .name(team.getName())
-        .description(team.getDescription())
-        .ownerNickname(team.getOwner().getNickname())
-        .isMyTeam(true)
-        .memberCount(team.getTeamMembers() != null ? team.getTeamMembers().size() : 0)
-        .myRole("팀장")
-        .createdAt(team.getCreatedAt())
-        .build();
-  }
-
-  // 팀 삭제 (팀장 권한)
+  /**
+   * 팀 삭제
+   */
   public void deleteTeam(Long teamId, Long userId) {
-    Team team = teamRepository.findById(teamId)
-        .orElseThrow(() -> new IllegalArgumentException("팀을 찾을 수 없습니다."));
-
-    if (!team.getOwner().getId().equals(userId)) {
-      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "팀장만 삭제할 수 있습니다.");
-    }
+    Team team = findTeamById(teamId);
+    checkOwnerAuthorization(team, userId);
 
     teamRepository.delete(team);
   }
 
-  // 팀원 목록 조회
+
+  /**
+   * 팀원 목록 조회 (팀 트리용)
+   */
   public List<TeamMemberResponseDto> getTeamMembers(Long teamId) {
     Team team = teamRepository.findById(teamId)
-        .orElseThrow(() -> new IllegalArgumentException("팀을 찾을 수 없습니다."));
+        .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
 
-    List<TeamMember> members = team.getTeamMembers();
-
-    return members.stream()
+    return team.getTeamMembers().stream()
         .map(member -> TeamMemberResponseDto.builder()
-            .userId(member.getUser().getId())
+            .id(member.getId())
             .nickname(member.getUser().getNickname())
-            .roleName(member.getRole() != null ? member.getRole().getName() : "팀원")
+            .roleCode(member.getRole() != null ? member.getRole().getName() : "팀원")
             .build())
         .collect(Collectors.toList());
+  }
+
+  // ────────────────────────────
+  // private 유틸 메서드
+  // ────────────────────────────
+
+  private User findUserById(Long userId) {
+    return userRepository.findById(userId)
+        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+  }
+
+  private Team findTeamById(Long teamId) {
+    return teamRepository.findById(teamId)
+        .orElseThrow(() -> new CustomException(ErrorCode.TEAM_NOT_FOUND));
+  }
+
+  private ComCode findComCode(String codeType, String name) {
+    return comCodeRepository.findByCodeTypeAndName(codeType, name)
+        .orElseThrow(() -> new CustomException(ErrorCode.COM_CODE_NOT_FOUND));
+  }
+
+  private void checkOwnerAuthorization(Team team, Long userId) {
+    if (!team.getOwner().getId().equals(userId)) {
+      throw new CustomException(ErrorCode.FORBIDDEN);
+    }
   }
 }

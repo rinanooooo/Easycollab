@@ -1,12 +1,13 @@
 package com.irnproj.easycollab.module.issue.service;
 
+import com.irnproj.easycollab.common.exception.CustomException;
+import com.irnproj.easycollab.common.exception.ErrorCode;
 import com.irnproj.easycollab.module.comCode.entity.ComCode;
 import com.irnproj.easycollab.module.comCode.repository.ComCodeRepository;
 import com.irnproj.easycollab.module.issue.dto.IssueRequestDto;
 import com.irnproj.easycollab.module.issue.dto.IssueResponseDto;
 import com.irnproj.easycollab.module.issue.entity.Issue;
 import com.irnproj.easycollab.module.issue.repository.IssueRepository;
-import com.irnproj.easycollab.module.notification.service.NotificationService;
 import com.irnproj.easycollab.module.project.entity.Project;
 import com.irnproj.easycollab.module.project.repository.ProjectRepository;
 import com.irnproj.easycollab.module.user.entity.User;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,159 +28,93 @@ public class IssueService {
   private final ProjectRepository projectRepository;
   private final UserRepository userRepository;
   private final ComCodeRepository comCodeRepository;
-  private final NotificationService notificationService;
 
-  // 프로젝트 생성
-  public IssueResponseDto createIssue(IssueRequestDto dto, Long userId) {
-    User reporter = userRepository.findById(userId)
-        .orElseThrow(() -> new IllegalArgumentException("작성자 정보를 찾을 수 없습니다."));
+  /**
+   * 이슈 생성
+   */
+  @Transactional
+  public IssueResponseDto createIssue(Long projectId, IssueRequestDto requestDto) {
+    Project project = findProjectById(projectId);
+    User assignee = findUserById(requestDto.getAssigneeId());
 
-    Project project = projectRepository.findById(dto.getProjectId())
-        .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다."));
-
-    ComCode status = comCodeRepository.findByCodeTypeAndCode("ISSUE_STATUS", dto.getStatusCode())
-        .orElseThrow(() -> new IllegalArgumentException("상태 코드를 찾을 수 없습니다."));
-
-    User assignee = null;
-    if (dto.getAssigneeId() != null) {
-      assignee = userRepository.findById(dto.getAssigneeId())
-          .orElseThrow(() -> new IllegalArgumentException("담당자 정보를 찾을 수 없습니다."));
-    }
+    ComCode status = findComCode("ISSUE_STATUS", requestDto.getStatus());
 
     Issue issue = Issue.builder()
-        .title(dto.getTitle())
-        .content(dto.getContent())
-        .project(project)
+        .title(requestDto.getTitle())
+        .content(requestDto.getContent())
         .status(status)
-        .reporter(reporter)
         .assignee(assignee)
-        .startDate(dto.getStartDate())
-        .endDate(dto.getEndDate())
+        .project(project)
         .build();
 
-    Issue saved = issueRepository.save(issue);
-
-    // 알림: 담당자에게 알림
-    if (assignee != null && !assignee.getId().equals(userId)) {
-      notificationService.createNotification(
-          assignee.getId(),
-          "'" + project.getName() + "'의 새로운 이슈가 생성되었습니다. '" + issue.getTitle() + "'",
-          "/projects/" + project.getId()
-      );
-    }
-
-    return IssueResponseDto.builder()
-        .id(saved.getId())
-        .title(saved.getTitle())
-        .content(saved.getContent())
-        .statusCode(status.getCode())
-        .statusName(status.getName())
-        .reporterName(reporter.getNickname())
-        .assigneeName(assignee != null ? assignee.getNickname() : null)
-        .projectName(project.getName())
-        .startDate(saved.getStartDate())
-        .endDate(saved.getEndDate())
-        .createdAt(saved.getCreatedAt())
-        .updatedAt(saved.getUpdatedAt())
-        .build();
+    issueRepository.save(issue);
+    return IssueResponseDto.of(issue);
   }
 
+  /**
+   * 이슈 단건 조회
+   */
+  @Transactional(readOnly = true)
+  public IssueResponseDto getIssue(Long issueId) {
+    Issue issue = findIssueById(issueId);
+    return IssueResponseDto.of(issue);
+  }
 
-  // 특정 프로젝트의 이슈 목록 조회
+  /**
+   * 이슈 수정
+   */
+  @Transactional(readOnly = true)
   public List<IssueResponseDto> getIssuesByProject(Long projectId) {
-    Project project = projectRepository.findById(projectId)
-        .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다."));
-
-    List<Issue> issues = issueRepository.findByProject(project);
-
-    return issues.stream()
-        .map(issue -> IssueResponseDto.builder()
-            .id(issue.getId())
-            .title(issue.getTitle())
-            .content(issue.getContent())
-            .statusCode(issue.getStatus() != null ? issue.getStatus().getCode() : null)
-            .statusName(issue.getStatus() != null ? issue.getStatus().getName() : null)
-            .reporterName(issue.getReporter().getNickname())
-            .assigneeName(issue.getAssignee() != null ? issue.getAssignee().getNickname() : null)
-            .projectName(project.getName())
-            .createdAt(issue.getCreatedAt())
-            .updatedAt(issue.getUpdatedAt())
-            .build())
+    return issueRepository.findByProjectId(projectId).stream()
+        .map(IssueResponseDto::of)
         .collect(Collectors.toList());
   }
 
-  // 단일 이슈 상세 조회
-  public IssueResponseDto getIssueById(Long issueId) {
-    Issue issue = issueRepository.findById(issueId)
-        .orElseThrow(() -> new IllegalArgumentException("이슈를 찾을 수 없습니다."));
 
-    return IssueResponseDto.builder()
-        .id(issue.getId())
-        .title(issue.getTitle())
-        .content(issue.getContent())
-        .statusCode(issue.getStatus() != null ? issue.getStatus().getCode() : null)
-        .statusName(issue.getStatus() != null ? issue.getStatus().getName() : null)
-        .reporterName(issue.getReporter().getNickname())
-        .assigneeName(issue.getAssignee() != null ? issue.getAssignee().getNickname() : null)
-        .projectName(issue.getProject().getName())
-        .startDate(issue.getStartDate())
-        .endDate(issue.getEndDate())
-        .createdAt(issue.getCreatedAt())
-        .updatedAt(issue.getUpdatedAt())
-        .build();
+  /**
+   * 이슈 삭제
+   */
+  @Transactional
+  public IssueResponseDto updateIssue(Long issueId, IssueRequestDto requestDto) {
+    Issue issue = findIssueById(issueId);
+
+    ComCode status = findComCode("ISSUE_STATUS", requestDto.getStatus());
+    User assignee = findUserById(requestDto.getAssigneeId());
+
+    issue.update(requestDto.getTitle(), requestDto.getContent(), status, assignee,
+        requestDto.getStartDate(), requestDto.getEndDate(), requestDto.isPinned());
+    return IssueResponseDto.of(issue);
   }
 
-  // 이슈 수정
+
+  /**
+   * 프로젝트 내 이슈 목록 조회
+   */
   @Transactional
-  public IssueResponseDto updateIssue(Long id, IssueRequestDto requestDto) {
-    Issue issue = issueRepository.findById(id)
-        .orElseThrow(() -> new IllegalArgumentException("이슈를 찾을 수 없습니다."));
-
-    Project project = projectRepository.findById(requestDto.getProjectId())
-        .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다."));
-
-    User reporter = issue.getReporter();
-
-    ComCode status = comCodeRepository.findByCodeTypeAndCode("ISSUE_STATUS", requestDto.getStatusCode())
-        .orElseThrow(() -> new IllegalArgumentException("상태 코드를 찾을 수 없습니다."));
-
-    User assignee = null;
-    if (requestDto.getAssigneeId() != null) {
-      assignee = userRepository.findById(requestDto.getAssigneeId())
-          .orElseThrow(() -> new IllegalArgumentException("담당자를 찾을 수 없습니다."));
-    }
-
-    issue.update(
-        requestDto.getTitle(),
-        requestDto.getContent(),
-        project,
-        status,
-        assignee,
-        requestDto.getStartDate(),
-        requestDto.getEndDate()
-    );
-
-    return IssueResponseDto.builder()
-        .id(issue.getId())
-        .title(issue.getTitle())
-        .content(issue.getContent())
-        .statusCode(status.getCode())
-        .statusName(status.getName())
-        .reporterName(reporter.getNickname())
-        .assigneeName(assignee != null ? assignee.getNickname() : null)
-        .projectName(project.getName())
-        .startDate(issue.getStartDate())
-        .endDate(issue.getEndDate())
-        .createdAt(issue.getCreatedAt())
-        .updatedAt(issue.getUpdatedAt())
-        .build();
-  }
-
-  // 이슈 삭제
-  @Transactional
-  public void deleteIssue(Long id) {
-    Issue issue = issueRepository.findById(id)
-        .orElseThrow(() -> new IllegalArgumentException("이슈를 찾을 수 없습니다."));
+  public void deleteIssue(Long issueId) {
+    Issue issue = findIssueById(issueId);
     issueRepository.delete(issue);
+  }
+
+  // === 유틸성 메서드 ===
+
+  private Project findProjectById(Long id) {
+    return projectRepository.findById(id)
+        .orElseThrow(() -> new CustomException(ErrorCode.PROJECT_NOT_FOUND));
+  }
+
+  private Issue findIssueById(Long id) {
+    return issueRepository.findById(id)
+        .orElseThrow(() -> new CustomException(ErrorCode.ISSUE_NOT_FOUND));
+  }
+
+  private User findUserById(Long id) {
+    return userRepository.findById(id)
+        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+  }
+
+  private ComCode findComCode(String codeType, String name) {
+    return comCodeRepository.findByCodeTypeAndName(codeType, name)
+        .orElseThrow(() -> new CustomException(ErrorCode.COM_CODE_NOT_FOUND));
   }
 }

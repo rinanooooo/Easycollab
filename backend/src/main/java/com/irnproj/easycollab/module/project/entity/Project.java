@@ -1,5 +1,6 @@
 package com.irnproj.easycollab.module.project.entity;
 
+import com.irnproj.easycollab.common.entity.BaseTimeEntity;
 import com.irnproj.easycollab.module.comCode.entity.ComCode;
 import com.irnproj.easycollab.module.issue.entity.Issue;
 import com.irnproj.easycollab.module.team.entity.Team;
@@ -13,16 +14,17 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
+@Table(name = "project")
 @Getter
-@Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EntityListeners(AuditingEntityListener.class)
-public class Project {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Project extends BaseTimeEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,6 +33,7 @@ public class Project {
   @Column(nullable = false, length = 100)
   private String name;
 
+  @Column(length = 255)
   private String description;
 
   @ManyToOne(fetch = FetchType.LAZY)
@@ -38,34 +41,30 @@ public class Project {
   private Team team;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "created_by", nullable = false)
-  private User createdBy;
+  @JoinColumn(name = "owner_id")
+  private User owner;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "status_code")
+  @JoinColumn(name = "status_code_id")
   private ComCode status;
 
-  // 예정인 경우 시작/종료일 미정
-  @Column
-  private LocalDate startDate;
-  @Column
-  private LocalDate endDate;
-
-  @CreatedDate
-  @Column(updatable = false)
-  private LocalDateTime createdAt;
-
-  @LastModifiedDate
-  private LocalDateTime updatedAt;
+  @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<ProjectMember> projectMembers = new ArrayList<>();
 
   @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Issue> issues = new ArrayList<>();
 
-  public void update(String name, String description, LocalDate startDate, LocalDate endDate, ComCode status) {
+  @Builder
+  public Project(String name, String description, Team team, ComCode status) {
     this.name = name;
     this.description = description;
-    this.startDate = startDate;
-    this.endDate = endDate;
+    this.team = team;
+    this.status = status;
+  }
+
+  public void update(String name, String description, ComCode status) {
+    this.name = name;
+    this.description = description;
     this.status = status;
   }
 }

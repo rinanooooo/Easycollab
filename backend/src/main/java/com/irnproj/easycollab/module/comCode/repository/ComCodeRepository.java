@@ -10,5 +10,6 @@ public interface ComCodeRepository extends JpaRepository<ComCode, Long> {
   List<ComCode> findByCodeType(String codeType);
   Optional<ComCode> findByCodeTypeAndCode(String codeType, String code);
   boolean existsByCodeTypeAndCode(String codeType, String code);
+  Optional<ComCode> findByCodeTypeAndName(String codeType, String name);
 }
 

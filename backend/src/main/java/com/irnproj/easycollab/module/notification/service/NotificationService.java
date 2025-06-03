@@ -1,67 +1,83 @@
 package com.irnproj.easycollab.module.notification.service;
 
+import com.irnproj.easycollab.common.exception.CustomException;
+import com.irnproj.easycollab.common.exception.ErrorCode;
 import com.irnproj.easycollab.module.notification.dto.NotificationResponseDto;
 import com.irnproj.easycollab.module.notification.entity.Notification;
 import com.irnproj.easycollab.module.notification.repository.NotificationRepository;
 import com.irnproj.easycollab.module.user.entity.User;
 import com.irnproj.easycollab.module.user.repository.UserRepository;
+import com.irnproj.easycollab.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class NotificationService {
 
   private final NotificationRepository notificationRepository;
   private final UserRepository userRepository;
 
   /**
-   * 내 알림 전체 조회 (최신순)
-   */
-  @Transactional(readOnly = true)
-  public List<NotificationResponseDto> getMyNotifications(Long userId) {
-    User user = userRepository.findById(userId)
-        .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
-
-    return notificationRepository.findByUserOrderByCreatedAtDesc(user).stream()
-        .map(NotificationResponseDto::fromEntity)
-        .collect(Collectors.toList());
-  }
-
-  /**
-   * 새 알림 저장
+   * 특정 사용자에게 알림을 생성합니다.
    */
   @Transactional
-  public void createNotification(Long userId, String content, String url) {
+  public void createNotification(Long userId, String message) {
     User user = userRepository.findById(userId)
-        .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
+        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
     Notification notification = Notification.builder()
         .user(user)
-        .content(content)
-        .url(url)
-        .isRead(false)
+        .message(message)
+        .read(false)
         .build();
 
     notificationRepository.save(notification);
   }
 
   /**
-   * 알림 읽음 처리
+   * 현재 로그인한 사용자의 알림 목록을 조회합니다.
+   * 최신순 정렬 및 읽음 여부 포함
+   */
+  public List<NotificationResponseDto> getNotificationsForCurrentUser() {
+    Long userId = SecurityUtil.getCurrentUserId();
+
+    return notificationRepository.findByUserId(userId).stream()
+        .sorted(Comparator.comparing(Notification::getCreatedAt).reversed())
+        .map(NotificationResponseDto::of)
+        .toList();
+  }
+
+  /**
+   * 특정 알림을 읽음 처리합니다.
+   * 본인의 알림이 아닌 경우 예외 발생
    */
   @Transactional
-  public void markAsRead(Long notificationId, Long userId) {
+  public void markAsRead(Long notificationId) {
     Notification notification = notificationRepository.findById(notificationId)
-        .orElseThrow(() -> new IllegalArgumentException("알림을 찾을 수 없습니다."));
+        .orElseThrow(() -> new CustomException(ErrorCode.NOTIFICATION_NOT_FOUND));
 
-    if (!notification.getUser().getId().equals(userId)) {
-      throw new IllegalArgumentException("본인의 알림만 읽음 처리할 수 있습니다.");
+    Long currentUserId = SecurityUtil.getCurrentUserId();
+    if (!notification.getUser().getId().equals(currentUserId)) {
+      throw new CustomException(ErrorCode.UNAUTHORIZED_NOTIFICATION_ACCESS);
     }
 
-    notification.setRead(true);
+    notification.markAsRead();
+  }
+
+  /**
+   * 사용자의 모든 알림을 읽음 처리합니다.
+   */
+  @Transactional
+  public void markAllAsRead() {
+    Long currentUserId = SecurityUtil.getCurrentUserId();
+    List<Notification> notifications = notificationRepository.findByUserId(currentUserId);
+
+    notifications.forEach(Notification::markAsRead);
   }
 }

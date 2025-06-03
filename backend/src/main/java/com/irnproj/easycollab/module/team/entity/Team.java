@@ -5,51 +5,39 @@ import com.irnproj.easycollab.module.project.entity.Project;
 import com.irnproj.easycollab.module.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Table(name = "team")
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 public class Team extends BaseTimeEntity {
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false, unique = true, length = 100)
-  private String name;
+  @Column(nullable = false, length = 100)
+  private String teamName;
 
-  @Column(length = 255)
+  @Column(length = 255, nullable = true)
   private String description;
 
-  // 팀장 (1:N 관계)
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "owner_id", nullable = false)
-  private User owner;
+  @JoinColumn(name = "owner_id")
+  private User owner; // 팀 생성자
 
-  // 팀 구성원 목록 (TeamMember를 통해 관리)
   @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<TeamMember> teamMembers = new ArrayList<>();
 
   @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Project> projects = new ArrayList<>();
 
-  @CreatedDate
-  @Column(updatable = false)
-  private LocalDateTime createdAt;
-
-  @LastModifiedDate
-  private LocalDateTime updatedAt;
-
-  public void update(String name, String description) {
-    this.name = name;
-    this.description = description;
+  public void update(String teamName, String description) {
+    this.teamName = teamName;
+    this.description = (description != null) ? description : this.description;
   }
 
 }
